@@ -20,6 +20,7 @@ function generateToken(user) {
       username: user.username,
       
   };
+  const secret = "secret"
 
   const options = {
       expiresIn: "1d",
@@ -32,24 +33,22 @@ function generateToken(user) {
 
 
 
-function register(req, res) {
 
-  let user = req.body;
-  const hash = bcrypt.hashSync(user.password, 4)
+function register(req, res) {
+  const user = req.body;
+  const hash = bcrypt.hashSync(user.password, 4);
   user.password = hash;
 
+  if (req.body.username && req.body.password) {
     dbs('users')
-    .insert(user)
-  
-  .then(saved => {
-    
-      res.status(201).json(saved)
-  })
-  .catch(error => {
-      res.status(500).json({error: "there was an error"})
-  })
-}
-
+      .insert(user)
+      .then(saved => {
+        res.status(201).json(saved);
+      })
+      .catch(error => {
+        res.status(500).json(error);
+      });
+}}
 
 
 
@@ -57,10 +56,13 @@ function register(req, res) {
 
 function login(req, res) {
 
-  let { username, password} = req.body;
+  const password = req.body.password
+  const username = req.body.username
 
-  DB
-  .getBy({username})
+  dbs('users')
+  .where({username})
+  .first()
+
   .then(user => {
       if (user && bcrypt.compareSync(password, user.password)) {
           
@@ -74,7 +76,7 @@ function login(req, res) {
       }
   })
   .catch( error => {
-      res.status(500).json(error)
+      res.status(500).json({message: "no work"})
   })
   
 }
